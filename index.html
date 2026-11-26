@@ -9,6 +9,30 @@
 </head>
 <body>
 
+<!-- LOGIN -->
+<section id="loginScreen" class="login-screen">
+    <div class="login-card">
+        <div class="brand-icon">Z</div>
+        <h1>Zafelle's Planner ♡</h1>
+        <p>Welcome to your personal space.</p>
+
+        <form id="loginForm">
+            <label>Email</label>
+            <input id="loginEmail" type="email"
+                   placeholder="Masukkan email" required>
+
+            <label>Password</label>
+            <input id="loginPassword" type="password"
+                   placeholder="Masukkan password" required>
+
+            <button type="submit" id="loginButton">Login</button>
+        </form>
+
+        <p id="authMessage" class="auth-message"></p>
+        <small>Made with ♡ for Zaafarani</small>
+    </div>
+</section>
+
 <!-- APLIKASI UTAMA -->
 <div class="app" id="appScreen" hidden>
     <aside class="sidebar">
@@ -25,7 +49,6 @@
             <a href="#dashboard" class="active">⌂ <span>Dashboard</span></a>
             <a href="#schedule">▦ <span>Jadwal Kegiatan</span></a>
             <a href="#tasks">♡ <span>To-Do List</span></a>
-            <a href="#notes">✎ <span>My Notes</span></a>
         </nav>
 
         <div class="sidebar-note">
@@ -184,37 +207,6 @@
             </div>
         </section>
 
-        <!-- MY NOTES -->
-        <section class="panel notes-panel" id="notes">
-            <div class="panel-heading">
-                <div>
-                    <h2>My Notes ♡</h2>
-                    <p>Write your thoughts and little memories.</p>
-                </div>
-                <span class="heading-icon">✎</span>
-            </div>
-
-            <form id="noteForm">
-                <label>Judul catatan</label>
-                <input type="text" id="noteTitle"
-                    placeholder="Contoh: My Daily Notes..." required>
-
-                <label>Isi catatan</label>
-                <textarea id="noteContent" rows="6"
-                    placeholder="Tuliskan sesuatu di sini..." required></textarea>
-
-                <button type="submit" id="saveNoteButton">
-                    + Simpan Catatan
-                </button>
-            </form>
-
-            <div class="list-heading">
-                <h3>Catatan Saya</h3>
-                <span id="noteCount">0 catatan</span>
-            </div>
-
-            <div id="notesList" class="notes-list"></div>
-            
         <footer>
             Zafelle's Planner · Made with love ♡
         </footer>
