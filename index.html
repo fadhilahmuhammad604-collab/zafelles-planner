@@ -184,6 +184,37 @@
             </div>
         </section>
 
+        <!-- MY NOTES -->
+        <section class="panel notes-panel" id="notes">
+            <div class="panel-heading">
+                <div>
+                    <h2>My Notes ♡</h2>
+                    <p>Write your thoughts and little memories.</p>
+                </div>
+                <span class="heading-icon">✎</span>
+            </div>
+
+            <form id="noteForm">
+                <label>Judul catatan</label>
+                <input type="text" id="noteTitle"
+                    placeholder="Contoh: My Daily Notes..." required>
+
+                <label>Isi catatan</label>
+                <textarea id="noteContent" rows="6"
+                    placeholder="Tuliskan sesuatu di sini..." required></textarea>
+
+                <button type="submit" id="saveNoteButton">
+                    + Simpan Catatan
+                </button>
+            </form>
+
+            <div class="list-heading">
+                <h3>Catatan Saya</h3>
+                <span id="noteCount">0 catatan</span>
+            </div>
+
+            <div id="notesList" class="notes-list"></div>
+            
         <footer>
             Zafelle's Planner · Made with love ♡
         </footer>
