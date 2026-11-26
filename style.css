@@ -587,3 +587,126 @@ footer {
         flex-direction: column;
     }
 }
+
+
+/* =====================================
+   FIREBASE LOGIN
+===================================== */
+
+[hidden] {
+    display: none !important;
+}
+
+.login-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: linear-gradient(135deg, #f7efff, #fff3f7);
+}
+
+.login-card {
+    width: 100%;
+    max-width: 420px;
+    padding: 38px 30px;
+    background: white;
+    border-radius: 24px;
+    box-shadow: 0 12px 40px rgba(120, 80, 150, 0.12);
+    text-align: center;
+}
+
+.login-card .brand-icon {
+    margin: 0 auto 18px;
+}
+
+.login-card h1 {
+    color: #8e6ba8;
+    margin-bottom: 8px;
+}
+
+.login-card p {
+    color: #998ca2;
+    margin-bottom: 24px;
+}
+
+.login-card form {
+    text-align: left;
+}
+
+.login-card label {
+    display: block;
+    margin: 14px 0 7px;
+    color: #705b7d;
+    font-weight: 600;
+}
+
+.login-card input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 13px;
+    border: 1px solid #eadcf2;
+    border-radius: 12px;
+    outline: none;
+}
+
+.login-card input:focus {
+    border-color: #b58bc9;
+}
+
+.login-card button {
+    width: 100%;
+    margin-top: 22px;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    background: #b58bc9;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.login-card button:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.login-card small {
+    display: block;
+    margin-top: 20px;
+    color: #a99ab2;
+}
+
+.auth-message {
+    font-size: 13px;
+    overflow-wrap: anywhere;
+}
+
+.topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logout-btn {
+    border: none;
+    padding: 10px 16px;
+    border-radius: 10px;
+    background: #f1e5f8;
+    color: #805d96;
+    cursor: pointer;
+}
+
+.logout-btn:hover {
+    background: #e8d5f2;
+}
+
+@media (max-width: 600px) {
+    .login-card {
+        padding: 30px 22px;
+    }
+
+    .topbar-actions {
+        gap: 7px;
+    }
+}
