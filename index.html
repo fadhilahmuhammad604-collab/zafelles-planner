@@ -9,7 +9,32 @@
 </head>
 <body>
 
-<div class="app">
+<!-- LOGIN -->
+<section id="loginScreen" class="login-screen">
+    <div class="login-card">
+        <div class="brand-icon">Z</div>
+        <h1>Zafelle's Planner ♡</h1>
+        <p>Welcome to your personal space.</p>
+
+        <form id="loginForm">
+            <label>Email</label>
+            <input id="loginEmail" type="email"
+                   placeholder="Masukkan email" required>
+
+            <label>Password</label>
+            <input id="loginPassword" type="password"
+                   placeholder="Masukkan password" required>
+
+            <button type="submit" id="loginButton">Login</button>
+        </form>
+
+        <p id="authMessage" class="auth-message"></p>
+        <small>Made with ♡ for Zaafarani</small>
+    </div>
+</section>
+
+<!-- APLIKASI UTAMA -->
+<div class="app" id="appScreen" hidden>
     <aside class="sidebar">
         <div class="brand">
             <div class="brand-icon">Z</div>
@@ -40,8 +65,14 @@
                 <p class="eyebrow">YOUR PERSONAL SPACE</p>
                 <h1>Good day, Zaafarani! ♡</h1>
                 <p id="todayDate" class="muted"></p>
+                <small id="currentUser"></small>
             </div>
-            <div class="avatar">Z</div>
+            <div class="topbar-actions">
+                <div class="avatar">Z</div>
+                <button type="button" id="logoutButton" class="logout-btn">
+                    Logout
+                </button>
+            </div>
         </header>
 
         <section class="hero">
@@ -181,6 +212,11 @@
         </footer>
     </main>
 </div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
 <script src="script.js"></script>
 </body>
