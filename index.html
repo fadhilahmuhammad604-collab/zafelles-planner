@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f7efff">
+    <title>Zafelle's Planner</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-icon">Z</div>
+            <div>
+                <h2>Zafelle's</h2>
+                <span>PERSONAL PLANNER</span>
+            </div>
+        </div>
+
+        <p class="menu-label">MENU UTAMA</p>
+        <nav>
+            <a href="#dashboard" class="active">⌂ <span>Dashboard</span></a>
+            <a href="#schedule">▦ <span>Jadwal Kegiatan</span></a>
+            <a href="#tasks">♡ <span>To-Do List</span></a>
+        </nav>
+
+        <div class="sidebar-note">
+            <div>✿</div>
+            <p>Little steps every day lead to beautiful things.</p>
+        </div>
+
+        <div class="side-footer">Made with ♡ for Zaafarani</div>
+    </aside>
+
+    <main class="main" id="dashboard">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">YOUR PERSONAL SPACE</p>
+                <h1>Good day, Zaafarani! ♡</h1>
+                <p id="todayDate" class="muted"></p>
+            </div>
+            <div class="avatar">Z</div>
+        </header>
+
+        <section class="hero">
+            <div>
+                <span class="hero-tag">✧ A LITTLE REMINDER</span>
+                <h2>Make today<br>something beautiful.</h2>
+                <p>Take your time, do your best, and enjoy every little moment.</p>
+            </div>
+            <div class="flower">✿</div>
+        </section>
+
+        <section class="stats">
+            <div class="stat-card">
+                <div class="stat-icon">▦</div>
+                <p>Total Jadwal</p>
+                <h2 id="scheduleCount">0</h2>
+                <small>Kegiatan terdaftar</small>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">♡</div>
+                <p>Total Tugas</p>
+                <h2 id="taskCount">0</h2>
+                <small>Semua tugas</small>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">✓</div>
+                <p>Tugas Selesai</p>
+                <h2 id="completedCount">0</h2>
+                <small>Berhasil diselesaikan</small>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">☆</div>
+                <p>Belum Selesai</p>
+                <h2 id="pendingCount">0</h2>
+                <small>Masih perlu dikerjakan</small>
+            </div>
+        </section>
+
+        <section class="content-grid">
+            <div class="panel" id="schedule">
+                <div class="panel-heading">
+                    <div>
+                        <h2>Jadwal Kegiatan</h2>
+                        <p>Atur aktivitas dan waktumu.</p>
+                    </div>
+                    <span class="heading-icon">▦</span>
+                </div>
+
+                <form id="scheduleForm">
+                    <label>Nama kegiatan</label>
+                    <input id="scheduleTitle" type="text"
+                        placeholder="Contoh: Belajar, kuliah, meeting..." required>
+
+                    <div class="form-row">
+                        <div>
+                            <label>Tanggal</label>
+                            <input id="scheduleDate" type="date" required>
+                        </div>
+                        <div>
+                            <label>Jam</label>
+                            <input id="scheduleTime" type="time" required>
+                        </div>
+                    </div>
+
+                    <label>Catatan (opsional)</label>
+                    <textarea id="scheduleNote"
+                        placeholder="Tambahkan catatan kecil..."></textarea>
+
+                    <button type="submit">+ Tambahkan Jadwal</button>
+                </form>
+
+                <div class="list-heading">
+                    <h3>Daftar Jadwal</h3>
+                    <span id="scheduleTotal">0 kegiatan</span>
+                </div>
+                <div id="scheduleList" class="item-list"></div>
+            </div>
+
+            <div class="panel" id="tasks">
+                <div class="panel-heading">
+                    <div>
+                        <h2>My To-Do List</h2>
+                        <p>One task at a time. You got this!</p>
+                    </div>
+                    <span class="heading-icon">♡</span>
+                </div>
+
+                <form id="taskForm">
+                    <label>Nama tugas</label>
+                    <input id="taskTitle" type="text"
+                        placeholder="Apa yang ingin kamu kerjakan?" required>
+
+                    <div class="form-row">
+                        <div>
+                            <label>Deadline</label>
+                            <input id="taskDate" type="date">
+                        </div>
+                        <div>
+                            <label>Prioritas</label>
+                            <select id="taskPriority">
+                                <option value="Normal">Normal</option>
+                                <option value="Penting">Penting</option>
+                                <option value="Mendesak">Mendesak</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit">+ Tambahkan Tugas</button>
+                </form>
+
+                <div class="list-heading">
+                    <h3>My Tasks</h3>
+                    <select id="taskFilter" class="filter">
+                        <option value="all">Semua</option>
+                        <option value="pending">Belum selesai</option>
+                        <option value="completed">Selesai</option>
+                    </select>
+                </div>
+
+                <div id="taskList" class="item-list"></div>
+
+                <div class="progress-box">
+                    <div class="progress-heading">
+                        <span>Daily Progress</span>
+                        <strong id="progressText">0%</strong>
+                    </div>
+                    <div class="progress-track">
+                        <div id="progressBar"></div>
+                    </div>
+                    <small>Every little progress matters ♡</small>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            Zafelle's Planner · Made with love ♡
+        </footer>
+    </main>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
