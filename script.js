@@ -1,31 +1,37 @@
+
 // =====================================
-// ZAFELLE'S PLANNER
-// Personal Schedule & To-Do Management
+// ZAFELLE'S PLANNER - FIREBASE VERSION
 // =====================================
+
+// FIREBASE CONFIGURATION
+const firebaseConfig = {
+    apiKey: "AIzaSyATxasivvd4zG82TU_FuCFQE6uG8e2yvRA",
+    authDomain: "zafelles-planner-60a40.firebaseapp.com",
+    projectId: "zafelles-planner-60a40",
+    storageBucket: "zafelles-planner-60a40.firebasestorage.app",
+    messagingSenderId: "122625492366",
+    appId: "1:122625492366:web:943fedbc8f9dbf021d10df",
+    measurementId: "G-0E7RQXQZFF"
+};
+
+// INITIALIZE FIREBASE
+firebase.initializeApp(firebaseConfig);
+
+const auth = firebase.auth();
+const db = firebase.firestore();
 
 const $ = id => document.getElementById(id);
 
-const STORAGE = {
-    schedules: "zafelles_schedules",
-    tasks: "zafelles_tasks"
-};
+let schedules = [];
+let tasks = [];
+let currentUser = null;
 
-function loadData(key) {
-    try {
-        const data = JSON.parse(localStorage.getItem(key) || "[]");
-        return Array.isArray(data) ? data : [];
-    } catch {
-        return [];
-    }
-}
+let unsubscribeSchedules = null;
+let unsubscribeTasks = null;
 
-let schedules = loadData(STORAGE.schedules);
-let tasks = loadData(STORAGE.tasks);
-
-function saveData() {
-    localStorage.setItem(STORAGE.schedules, JSON.stringify(schedules));
-    localStorage.setItem(STORAGE.tasks, JSON.stringify(tasks));
-}
+// =====================================
+// HELPER FUNCTIONS
+// =====================================
 
 function escapeHTML(value) {
     return String(value ?? "").replace(/[&<>"']/g, char => ({
@@ -35,11 +41,6 @@ function escapeHTML(value) {
         '"': "&quot;",
         "'": "&#39;"
     })[char]);
-}
-
-function createId() {
-    return Date.now().toString(36) +
-        Math.random().toString(36).slice(2, 9);
 }
 
 function formatDate(date) {
@@ -53,6 +54,12 @@ function formatDate(date) {
         month: "long",
         year: "numeric"
     });
+}
+
+function showMessage(message, isError = false) {
+    const element = $("authMessage");
+    element.textContent = message;
+    element.style.color = isError ? "#d95375" : "#6b9d75";
 }
 
 // =====================================
@@ -75,13 +82,151 @@ function displayToday() {
         String(now.getDate()).padStart(2, "0");
 }
 
-displayToday();
+// =====================================
+// AUTHENTICATION
+// =====================================
+
+$("loginForm").addEventListener("submit", async function(event) {
+    event.preventDefault();
+
+    const email = $("loginEmail").value.trim();
+    const password = $("loginPassword").value;
+    const button = $("loginButton");
+
+    button.disabled = true;
+    button.textContent = "Memproses...";
+
+    try {
+        await auth.signInWithEmailAndPassword(email, password);
+        showMessage("Login berhasil!");
+    } catch (error) {
+        console.error("Login error:", error);
+
+        const messages = {
+            "auth/invalid-email": "Format email tidak valid.",
+            "auth/user-not-found": "Akun tidak ditemukan.",
+            "auth/wrong-password": "Password salah.",
+            "auth/invalid-credential": "Email atau password salah.",
+            "auth/too-many-requests": "Terlalu banyak percobaan. Coba lagi nanti."
+        };
+
+        showMessage(
+            messages[error.code] || "Login gagal: " + error.message,
+            true
+        );
+    } finally {
+        button.disabled = false;
+        button.textContent = "Login";
+    }
+});
+
+$("logoutButton").addEventListener("click", async function() {
+    if (!confirm("Yakin ingin keluar dari akun?")) return;
+
+    try {
+        await auth.signOut();
+    } catch (error) {
+        alert("Gagal logout: " + error.message);
+    }
+});
+
+// =====================================
+// AUTH STATE
+// =====================================
+
+auth.onAuthStateChanged(user => {
+    if (user) {
+        currentUser = user;
+
+        $("loginScreen").hidden = true;
+        $("appScreen").hidden = false;
+        $("currentUser").textContent = user.email || "";
+
+        displayToday();
+        startDataListeners();
+    } else {
+        currentUser = null;
+
+        stopDataListeners();
+
+        schedules = [];
+        tasks = [];
+
+        $("appScreen").hidden = true;
+        $("loginScreen").hidden = false;
+
+        renderSchedules();
+        renderTasks();
+    }
+});
+
+// =====================================
+// FIRESTORE PATHS
+// =====================================
+
+function userCollection(collectionName) {
+    if (!currentUser) {
+        throw new Error("Kamu belum login.");
+    }
+
+    return db.collection("users")
+        .doc(currentUser.uid)
+        .collection(collectionName);
+}
+
+// =====================================
+// REALTIME DATA LISTENERS
+// =====================================
+
+function startDataListeners() {
+    stopDataListeners();
+
+    unsubscribeSchedules = userCollection("schedules")
+        .orderBy("date")
+        .onSnapshot(snapshot => {
+            schedules = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+
+            renderSchedules();
+        }, error => {
+            console.error("Schedule listener:", error);
+            alert("Gagal memuat jadwal: " + error.message);
+        });
+
+    unsubscribeTasks = userCollection("tasks")
+        .onSnapshot(snapshot => {
+            tasks = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+
+            renderTasks();
+            updateStatistics();
+        }, error => {
+            console.error("Task listener:", error);
+            alert("Gagal memuat tugas: " + error.message);
+        });
+}
+
+function stopDataListeners() {
+    if (unsubscribeSchedules) {
+        unsubscribeSchedules();
+        unsubscribeSchedules = null;
+    }
+
+    if (unsubscribeTasks) {
+        unsubscribeTasks();
+        unsubscribeTasks = null;
+    }
+}
 
 // =====================================
 // SCHEDULE MANAGEMENT
 // =====================================
 
-$("scheduleForm").addEventListener("submit", function(event) {
+$("scheduleForm").addEventListener("submit", async function(event) {
     event.preventDefault();
 
     const title = $("scheduleTitle").value.trim();
@@ -94,21 +239,23 @@ $("scheduleForm").addEventListener("submit", function(event) {
         return;
     }
 
-    schedules.push({
-        id: createId(),
-        title,
-        date,
-        time,
-        note
-    });
+    try {
+        await userCollection("schedules").add({
+            title,
+            date,
+            time,
+            note,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
 
-    saveData();
-    renderSchedules();
+        this.reset();
+        displayToday();
 
-    this.reset();
-    $("scheduleDate").value = new Date().toLocaleDateString("en-CA");
-
-    alert("Jadwal berhasil ditambahkan! ♡");
+        alert("Jadwal berhasil ditambahkan! ♡");
+    } catch (error) {
+        console.error(error);
+        alert("Gagal menyimpan jadwal: " + error.message);
+    }
 });
 
 function renderSchedules() {
@@ -122,7 +269,8 @@ function renderSchedules() {
     $("scheduleTotal").textContent = schedules.length + " kegiatan";
 
     if (!sorted.length) {
-        list.innerHTML = '<div class="empty">✿ Belum ada jadwal. Tambahkan kegiatanmu!</div>';
+        list.innerHTML =
+            '<div class="empty">✿ Belum ada jadwal. Tambahkan kegiatanmu!</div>';
         return;
     }
 
@@ -134,14 +282,16 @@ function renderSchedules() {
                 ${item.note ? `<small>♡ ${escapeHTML(item.note)}</small>` : ""}
             </div>
             <div class="item-actions">
-                <button class="edit-btn" onclick="editSchedule('${item.id}')">Edit</button>
-                <button class="delete-btn" onclick="deleteSchedule('${item.id}')">Hapus</button>
+                <button class="edit-btn"
+                    onclick="editSchedule('${item.id}')">Edit</button>
+                <button class="delete-btn"
+                    onclick="deleteSchedule('${item.id}')">Hapus</button>
             </div>
         </div>
     `).join("");
 }
 
-function editSchedule(id) {
+async function editSchedule(id) {
     const item = schedules.find(s => s.id === id);
     if (!item) return;
 
@@ -154,35 +304,39 @@ function editSchedule(id) {
     const time = prompt("Ubah jam (HH:MM):", item.time);
     if (time === null) return;
 
-    if (!title.trim() || !date || !time ||
+    if (!title.trim() ||
         !/^\d{4}-\d{2}-\d{2}$/.test(date) ||
         !/^\d{2}:\d{2}$/.test(time)) {
         alert("Data tidak valid.");
         return;
     }
 
-    item.title = title.trim();
-    item.date = date;
-    item.time = time;
-
-    saveData();
-    renderSchedules();
+    try {
+        await userCollection("schedules").doc(id).update({
+            title: title.trim(),
+            date,
+            time
+        });
+    } catch (error) {
+        alert("Gagal mengubah jadwal: " + error.message);
+    }
 }
 
-function deleteSchedule(id) {
+async function deleteSchedule(id) {
     if (!confirm("Yakin ingin menghapus jadwal ini?")) return;
 
-    schedules = schedules.filter(s => s.id !== id);
-
-    saveData();
-    renderSchedules();
+    try {
+        await userCollection("schedules").doc(id).delete();
+    } catch (error) {
+        alert("Gagal menghapus jadwal: " + error.message);
+    }
 }
 
 // =====================================
 // TASK MANAGEMENT
 // =====================================
 
-$("taskForm").addEventListener("submit", function(event) {
+$("taskForm").addEventListener("submit", async function(event) {
     event.preventDefault();
 
     const title = $("taskTitle").value.trim();
@@ -194,20 +348,22 @@ $("taskForm").addEventListener("submit", function(event) {
         return;
     }
 
-    tasks.push({
-        id: createId(),
-        title,
-        date,
-        priority,
-        completed: false
-    });
+    try {
+        await userCollection("tasks").add({
+            title,
+            date,
+            priority,
+            completed: false,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
 
-    saveData();
-    renderTasks();
+        this.reset();
 
-    this.reset();
-
-    alert("Tugas berhasil ditambahkan! ♡");
+        alert("Tugas berhasil ditambahkan! ♡");
+    } catch (error) {
+        console.error(error);
+        alert("Gagal menyimpan tugas: " + error.message);
+    }
 });
 
 function renderTasks() {
@@ -225,11 +381,12 @@ function renderTasks() {
     filtered.sort((a, b) => {
         if (!a.date) return 1;
         if (!b.date) return -1;
-        return a.date.localeCompare(b.date);
+        return (a.date || "").localeCompare(b.date || "");
     });
 
     if (!filtered.length) {
-        list.innerHTML = '<div class="empty">♡ Tidak ada tugas di kategori ini.</div>';
+        list.innerHTML =
+            '<div class="empty">♡ Tidak ada tugas di kategori ini.</div>';
     } else {
         list.innerHTML = filtered.map(task => {
             const priorityClass =
@@ -263,17 +420,20 @@ function renderTasks() {
     updateStatistics();
 }
 
-function toggleTask(id) {
+async function toggleTask(id) {
     const task = tasks.find(t => t.id === id);
     if (!task) return;
 
-    task.completed = !task.completed;
-
-    saveData();
-    renderTasks();
+    try {
+        await userCollection("tasks").doc(id).update({
+            completed: !task.completed
+        });
+    } catch (error) {
+        alert("Gagal memperbarui tugas: " + error.message);
+    }
 }
 
-function editTask(id) {
+async function editTask(id) {
     const task = tasks.find(t => t.id === id);
     if (!task) return;
 
@@ -282,7 +442,7 @@ function editTask(id) {
 
     const date = prompt(
         "Ubah deadline (YYYY-MM-DD), kosongkan jika tidak ada:",
-        task.date
+        task.date || ""
     );
 
     if (date === null) return;
@@ -303,21 +463,25 @@ function editTask(id) {
         return;
     }
 
-    task.title = title.trim();
-    task.date = date;
-    task.priority = priority;
-
-    saveData();
-    renderTasks();
+    try {
+        await userCollection("tasks").doc(id).update({
+            title: title.trim(),
+            date,
+            priority
+        });
+    } catch (error) {
+        alert("Gagal mengubah tugas: " + error.message);
+    }
 }
 
-function deleteTask(id) {
+async function deleteTask(id) {
     if (!confirm("Yakin ingin menghapus tugas ini?")) return;
 
-    tasks = tasks.filter(t => t.id !== id);
-
-    saveData();
-    renderTasks();
+    try {
+        await userCollection("tasks").doc(id).delete();
+    } catch (error) {
+        alert("Gagal menghapus tugas: " + error.message);
+    }
 }
 
 // =====================================
@@ -347,16 +511,11 @@ function updateStatistics() {
 }
 
 // =====================================
-// INITIALIZE WEBSITE
+// INITIAL DISPLAY
 // =====================================
 
-function initialize() {
-    renderSchedules();
-    renderTasks();
-    updateStatistics();
-    saveData();
-}
+displayToday();
+renderSchedules();
+renderTasks();
 
-initialize();
-
-console.log("Zafelle's Planner berhasil dijalankan! ♡");
+console.log("Zafelle's Planner Firebase siap! ♡");
